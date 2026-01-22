@@ -3,6 +3,44 @@
     'entityControlName' => null,
 ])
 
+@php
+    // Get available "from" addresses from auto-tag mappings
+    $fromAddresses = [];
+    $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
+
+    if (!empty($mappingsConfig)) {
+        $mappings = json_decode($mappingsConfig, true);
+        if (is_array($mappings)) {
+            foreach ($mappings as $mapping) {
+                if (!empty($mapping['email'])) {
+                    $fromAddresses[] = [
+                        'email' => $mapping['email'],
+                        'name' => $mapping['name'] ?? '',
+                        'label' => !empty($mapping['name'])
+                            ? $mapping['name'] . ' <' . $mapping['email'] . '>'
+                            : $mapping['email'],
+                    ];
+                }
+            }
+        }
+    }
+
+    // Add default from address if not already in the list
+    $defaultEmail = config('mail.from.address');
+    $defaultName = config('mail.from.name');
+    $hasDefault = collect($fromAddresses)->contains('email', $defaultEmail);
+
+    if (!$hasDefault && $defaultEmail) {
+        array_unshift($fromAddresses, [
+            'email' => $defaultEmail,
+            'name' => $defaultName ?? '',
+            'label' => !empty($defaultName)
+                ? $defaultName . ' <' . $defaultEmail . '>'
+                : $defaultEmail,
+        ]);
+    }
+@endphp
+
 <!-- Mail Button -->
 <div>
     {!! view_render_event('admin.components.activities.actions.mail.create_btn.before') !!}
@@ -76,7 +114,41 @@
                                 ::name="entityControlName"
                                 ::value="entity.id"
                             />
-                            
+
+                            <!-- From -->
+                            @if (count($fromAddresses) > 1)
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label class="required">
+                                        @lang('admin::app.components.activities.actions.mail.from')
+                                    </x-admin::form.control-group.label>
+
+                                    <x-admin::form.control-group.control
+                                        type="select"
+                                        name="from"
+                                        id="mail-from"
+                                        rules="required"
+                                        v-model="selectedFrom"
+                                        :label="trans('admin::app.components.activities.actions.mail.from')"
+                                    >
+                                        <option
+                                            v-for="fromAddress in fromAddresses"
+                                            :key="fromAddress.email"
+                                            :value="fromAddress.email"
+                                        >
+                                            @{{ fromAddress.label }}
+                                        </option>
+                                    </x-admin::form.control-group.control>
+
+                                    <x-admin::form.control-group.error control-name="from" />
+                                </x-admin::form.control-group>
+                            @else
+                                <x-admin::form.control-group.control
+                                    type="hidden"
+                                    name="from"
+                                    value="{{ $fromAddresses[0]['email'] ?? '' }}"
+                                />
+                            @endif
+
                             <!-- To -->
                             <x-admin::form.control-group>
                                 <x-admin::form.control-group.label class="required">
@@ -248,6 +320,10 @@
                     showBCC: false,
 
                     isStoring: false,
+
+                    fromAddresses: @json($fromAddresses),
+
+                    selectedFrom: @json($fromAddresses[0]['email'] ?? ''),
                 }
             },
 

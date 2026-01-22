@@ -106,6 +106,7 @@ return [
                 'mail' => [
                     'btn'          => 'Mail',
                     'title'        => 'Compose Mail',
+                    'from'         => 'From',
                     'to'           => 'To',
                     'enter-emails' => 'Press enter to add emails',
                     'cc'           => 'CC',
@@ -591,6 +592,7 @@ return [
                         'mail' => [
                             'btn'      => 'Mail',
                             'title'    => 'Compose Mail',
+                            'from'     => 'From',
                             'to'       => 'To',
                             'cc'       => 'CC',
                             'bcc'      => 'BCC',
