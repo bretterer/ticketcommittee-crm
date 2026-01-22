@@ -311,4 +311,40 @@ return [
             ],
         ],
     ],
+
+    /**
+     * Postmark Inbound Email Webhook.
+     */
+    [
+        'key'  => 'email.postmark',
+        'name' => 'admin::app.configuration.index.email.postmark.title',
+        'info' => 'admin::app.configuration.index.email.postmark.info',
+        'icon' => 'icon-setting',
+        'sort' => 2,
+    ], [
+        'key'    => 'email.postmark.general',
+        'name'   => 'admin::app.configuration.index.email.postmark.general.title',
+        'info'   => 'admin::app.configuration.index.email.postmark.general.title-info',
+        'sort'   => 1,
+        'fields' => [
+            [
+                'name'    => 'enabled',
+                'title'   => 'admin::app.configuration.index.email.postmark.general.enabled',
+                'type'    => 'boolean',
+                'default' => false,
+            ],
+            [
+                'name'  => 'webhook_token',
+                'title' => 'admin::app.configuration.index.email.postmark.general.webhook-token',
+                'type'  => 'password',
+                'info'  => 'admin::app.configuration.index.email.postmark.general.webhook-token-info',
+            ],
+            [
+                'name' => 'webhook_url',
+                'title' => 'admin::app.configuration.index.email.postmark.general.webhook-url',
+                'type' => 'blade',
+                'path' => 'admin::configuration.postmark-webhook-url',
+            ],
+        ],
+    ],
 ];

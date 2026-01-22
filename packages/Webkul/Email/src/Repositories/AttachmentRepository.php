@@ -78,4 +78,37 @@ class AttachmentRepository extends Repository
 
         return $attributes;
     }
+
+    /**
+     * Upload attachment from Postmark webhook payload.
+     */
+    public function uploadPostmarkAttachment(Email $email, array $attachment): void
+    {
+        $name = $attachment['Name'] ?? 'attachment';
+        $content = base64_decode($attachment['Content'] ?? '');
+        $mimeType = $attachment['ContentType'] ?? 'application/octet-stream';
+        $contentId = $attachment['ContentID'] ?? null;
+
+        if (empty($content)) {
+            return;
+        }
+
+        $path = 'emails/'.$email->id.'/'.$name;
+
+        Storage::put($path, $content);
+
+        $attributes = [
+            'path'         => $path,
+            'name'         => $name,
+            'content_type' => $mimeType,
+            'size'         => Storage::size($path),
+            'email_id'     => $email->id,
+        ];
+
+        if (! empty($contentId)) {
+            $attributes['content_id'] = $contentId;
+        }
+
+        $this->create($attributes);
+    }
 }

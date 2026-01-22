@@ -216,6 +216,7 @@
                         <div
                             v-for="record in available.records"
                             class="flex cursor-pointer items-center justify-between border-b px-8 py-4 text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-950 max-lg:hidden"
+                            :class="{ 'opacity-50': Number(record.is_read) === 1 }"
                             @click.stop="selectedMail=true; editModal(record.actions.find(action => action.index === 'edit'))"
                         >
                             <!-- Select Box -->
@@ -248,7 +249,10 @@
                                         </div>
                                     </div>
 
-                                    <p class="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap leading-none">
+                                    <p
+                                        class="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap leading-none"
+                                        :class="{ 'font-semibold': ! record.is_read }"
+                                    >
                                         <x-admin::avatar ::name="record.name ?? record.from" />
 
                                         @{{ record.name }}
@@ -278,6 +282,7 @@
                                             <!-- Subject -->
                                             <p
                                                 class="line-clamp-1 text-sm text-gray-900 dark:text-gray-100"
+                                                :class="{ 'font-semibold': ! record.is_read }"
                                                 v-text="record.subject"
                                             >
                                             </p>
@@ -302,6 +307,7 @@
                         <!-- Mobile Card View -->
                         <div
                             class="hidden border-b px-4 py-4 text-black dark:border-gray-800 dark:text-gray-300 max-lg:block"
+                            :class="{ 'opacity-50': Number(record.is_read) === 1 }"
                             v-for="record in available.records"
                             @click.stop="selectedMail=true; editModal(record.actions.find(action => action.index === 'edit'))"
                         >

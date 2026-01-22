@@ -58,7 +58,15 @@
                                     :class="{ 'bg-brandColor text-white': activeMenu === '{{ $menuKey }}' || {{ $isMenuActive ? 'true' : 'false' }}, 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-950': !(activeMenu === '{{ $menuKey }}' || {{ $isMenuActive ? 'true' : 'false' }}) }"
                                 >
                                     <div class="flex items-center gap-3">
-                                        <span class="{{ $menuItem->getIcon() }} text-2xl"></span>
+                                        <div class="relative">
+                                            <span class="{{ $menuItem->getIcon() }} text-2xl"></span>
+
+                                            @if ($menuItem->getKey() === 'mail' && ($unreadCount = getUnreadInboxCount()) > 0)
+                                                <span class="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 text-[9px] font-bold leading-none text-white bg-red-500 rounded-full">
+                                                    {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                                                </span>
+                                            @endif
+                                        </div>
 
                                         <p class="whitespace-nowrap font-semibold">{{ $menuItem->getName() }}</p>
                                     </div>
@@ -79,9 +87,15 @@
                                         @foreach ($menuItem->getChildren() as $subMenuItem)
                                             <a
                                                 href="{{ $subMenuItem->getUrl() }}"
-                                                class="submenu-link block whitespace-nowrap p-2 pl-10 text-sm transition-colors duration-200"
+                                                class="submenu-link flex items-center justify-between whitespace-nowrap p-2 pl-10 text-sm transition-colors duration-200"
                                                 :class="{ 'text-brandColor font-medium bg-gray-100 dark:bg-gray-800': '{{ $subMenuItem->isActive() }}' === '1', 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800': '{{ $subMenuItem->isActive() }}' !== '1' }">
-                                                {{ $subMenuItem->getName() }}
+                                                <span>{{ $subMenuItem->getName() }}</span>
+
+                                                @if ($subMenuItem->getKey() === 'mail.inbox' && ($unreadCount = getUnreadInboxCount()) > 0)
+                                                    <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                                                        {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                                                    </span>
+                                                @endif
                                             </a>
                                         @endforeach
                                     </div>
