@@ -135,7 +135,8 @@ class CoreConfigRepository extends Repository
                         $coreConfigValues = $this->model->where('code', $fieldNameWithKey)->get();
 
                         if (request()->hasFile($fieldNameWithKey)) {
-                            $val = request()->file($fieldNameWithKey)->store('configuration');
+                            $file = request()->file($fieldNameWithKey);
+                            $val = $file->storeAs('configuration', Str::random(40).'.'.$file->getClientOriginalExtension());
                         }
 
                         if ($coreConfigValues->isNotEmpty()) {
@@ -152,7 +153,8 @@ class CoreConfigRepository extends Repository
                     }
                 } else {
                     if (request()->hasFile($fieldName)) {
-                        $value = request()->file($fieldName)->store('configuration');
+                        $file = request()->file($fieldName);
+                        $value = $file->storeAs('configuration', Str::random(40).'.'.$file->getClientOriginalExtension());
                     }
 
                     $preparedData[] = [

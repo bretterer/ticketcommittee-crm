@@ -36,18 +36,16 @@ return [
         'sort'   => 2,
         'fields' => [
             [
-                'name'          => 'logo_image',
-                'title'         => 'admin::app.configuration.index.general.general.admin-logo.logo-image',
-                'type'          => 'image',
-                'info'          => 'admin::app.configuration.index.general.general.admin-logo.logo-image-info',
-                'validation'    => 'mimes:bmp,jpeg,jpg,png,webp,svg',
+                'name'       => 'logo_image',
+                'title'      => 'admin::app.configuration.index.general.general.admin-logo.logo-image',
+                'type'       => 'image',
+                'info'       => 'admin::app.configuration.index.general.general.admin-logo.logo-image-info',
             ],
             [
-                'name'          => 'dark_logo_image',
-                'title'         => 'admin::app.configuration.index.general.general.admin-logo.dark-logo-image',
-                'type'          => 'image',
-                'info'          => 'admin::app.configuration.index.general.general.admin-logo.dark-logo-image-info',
-                'validation'    => 'mimes:bmp,jpeg,jpg,png,webp,svg',
+                'name'       => 'dark_logo_image',
+                'title'      => 'admin::app.configuration.index.general.general.admin-logo.dark-logo-image',
+                'type'       => 'image',
+                'info'       => 'admin::app.configuration.index.general.general.admin-logo.dark-logo-image-info',
             ],
         ],
     ], [
