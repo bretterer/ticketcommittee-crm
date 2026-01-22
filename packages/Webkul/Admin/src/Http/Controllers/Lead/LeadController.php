@@ -219,7 +219,7 @@ class LeadController extends Controller
     public function view(int $id)
     {
         $lead = $this->leadRepository
-            ->with(['person.emails'])
+            ->with(['person'])
             ->findOrFail($id);
 
         $userIds = bouncer()->getAuthorizedUserIds();

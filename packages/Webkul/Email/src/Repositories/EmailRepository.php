@@ -81,34 +81,33 @@ class EmailRepository extends Repository
             'name'    => config('mail.from.name'),
         ];
 
-        // Check if it's the default mail address
-        if ($email === config('mail.from.address')) {
+        // Only look up mappings if Postmark is enabled
+        $postmarkEnabled = (bool) core()->getConfigData('email.postmark.general.enabled');
+
+        if (! $postmarkEnabled) {
             return $defaultFrom;
         }
 
         // Get auto-tag mappings config to find the name for this email
         $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
 
-        if (empty($mappingsConfig)) {
-            return $defaultFrom;
-        }
+        if (! empty($mappingsConfig)) {
+            $mappings = json_decode($mappingsConfig, true);
 
-        $mappings = json_decode($mappingsConfig, true);
-
-        if (! is_array($mappings) || empty($mappings)) {
-            return $defaultFrom;
-        }
-
-        // Find the mapping for this email address
-        foreach ($mappings as $mapping) {
-            if (! empty($mapping['email']) && $mapping['email'] === $email) {
-                return [
-                    'address' => $email,
-                    'name'    => $mapping['name'] ?? config('mail.from.name'),
-                ];
+            if (is_array($mappings) && ! empty($mappings)) {
+                // Find the mapping for this email address
+                foreach ($mappings as $mapping) {
+                    if (! empty($mapping['email']) && $mapping['email'] === $email && ! empty($mapping['name'])) {
+                        return [
+                            'address' => $email,
+                            'name'    => $mapping['name'],
+                        ];
+                    }
+                }
             }
         }
 
+        // Fall back to default mail config name
         return $defaultFrom;
     }
 
@@ -125,6 +124,13 @@ class EmailRepository extends Repository
         ];
 
         if (! $parentEmail) {
+            return $defaultFrom;
+        }
+
+        // Only look up mappings if Postmark is enabled
+        $postmarkEnabled = (bool) core()->getConfigData('email.postmark.general.enabled');
+
+        if (! $postmarkEnabled) {
             return $defaultFrom;
         }
 

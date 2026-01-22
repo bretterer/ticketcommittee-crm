@@ -1,20 +1,24 @@
 @php
-    // Get available "from" addresses from auto-tag mappings
+    // Get available "from" addresses from auto-tag mappings (only if Postmark is enabled)
     $fromAddresses = [];
-    $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
+    $postmarkEnabled = (bool) core()->getConfigData('email.postmark.general.enabled');
 
-    if (!empty($mappingsConfig)) {
-        $mappings = json_decode($mappingsConfig, true);
-        if (is_array($mappings)) {
-            foreach ($mappings as $mapping) {
-                if (!empty($mapping['email'])) {
-                    $fromAddresses[] = [
-                        'email' => $mapping['email'],
-                        'name' => $mapping['name'] ?? '',
-                        'label' => !empty($mapping['name'])
-                            ? $mapping['name'] . ' <' . $mapping['email'] . '>'
-                            : $mapping['email'],
-                    ];
+    if ($postmarkEnabled) {
+        $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
+
+        if (!empty($mappingsConfig)) {
+            $mappings = json_decode($mappingsConfig, true);
+            if (is_array($mappings)) {
+                foreach ($mappings as $mapping) {
+                    if (!empty($mapping['email'])) {
+                        $fromAddresses[] = [
+                            'email' => $mapping['email'],
+                            'name' => $mapping['name'] ?? '',
+                            'label' => !empty($mapping['name'])
+                                ? $mapping['name'] . ' <' . $mapping['email'] . '>'
+                                : $mapping['email'],
+                        ];
+                    }
                 }
             }
         }

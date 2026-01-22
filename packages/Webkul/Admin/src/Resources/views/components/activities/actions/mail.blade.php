@@ -4,22 +4,26 @@
 ])
 
 @php
-    // Get available "from" addresses from auto-tag mappings
+    // Get available "from" addresses from auto-tag mappings (only if Postmark is enabled)
     $fromAddresses = [];
-    $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
+    $postmarkEnabled = (bool) core()->getConfigData('email.postmark.general.enabled');
 
-    if (!empty($mappingsConfig)) {
-        $mappings = json_decode($mappingsConfig, true);
-        if (is_array($mappings)) {
-            foreach ($mappings as $mapping) {
-                if (!empty($mapping['email'])) {
-                    $fromAddresses[] = [
-                        'email' => $mapping['email'],
-                        'name' => $mapping['name'] ?? '',
-                        'label' => !empty($mapping['name'])
-                            ? $mapping['name'] . ' <' . $mapping['email'] . '>'
-                            : $mapping['email'],
-                    ];
+    if ($postmarkEnabled) {
+        $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
+
+        if (!empty($mappingsConfig)) {
+            $mappings = json_decode($mappingsConfig, true);
+            if (is_array($mappings)) {
+                foreach ($mappings as $mapping) {
+                    if (!empty($mapping['email'])) {
+                        $fromAddresses[] = [
+                            'email' => $mapping['email'],
+                            'name' => $mapping['name'] ?? '',
+                            'label' => !empty($mapping['name'])
+                                ? $mapping['name'] . ' <' . $mapping['email'] . '>'
+                                : $mapping['email'],
+                        ];
+                    }
                 }
             }
         }
@@ -38,6 +42,27 @@
                 ? $defaultName . ' <' . $defaultEmail . '>'
                 : $defaultEmail,
         ]);
+    }
+
+    // Get recipient emails from entity
+    $recipientEmails = [];
+    if ($entity) {
+        // For leads, get emails from the associated person
+        // Need to load the person relationship if not already loaded
+        if (method_exists($entity, 'person') && !$entity->relationLoaded('person')) {
+            $entity->load('person');
+        }
+
+        $emails = $entity->person?->emails ?? $entity->emails ?? [];
+        if (is_array($emails)) {
+            foreach ($emails as $email) {
+                if (is_array($email) && !empty($email['value'])) {
+                    $recipientEmails[] = $email['value'];
+                } elseif (is_string($email)) {
+                    $recipientEmails[] = $email;
+                }
+            }
+        }
     }
 @endphp
 
@@ -161,7 +186,7 @@
                                         name="reply_to"
                                         rules="required"
                                         input-rules="email"
-                                        ::data="recipientEmails"
+                                        :data="$recipientEmails"
                                         :label="trans('admin::app.components.activities.actions.mail.to')"
                                         :placeholder="trans('admin::app.components.activities.actions.mail.enter-emails')"
                                     />
@@ -328,27 +353,38 @@
                 }
             },
 
-            computed: {
-                /**
-                 * Get recipient emails from the entity's person.
-                 * Works for both leads (entity.person.emails) and persons (entity.emails).
-                 */
-                recipientEmails() {
-                    // For leads, get emails from the associated person
-                    if (this.entity?.person?.emails) {
-                        return this.entity.person.emails.map(email => email.value);
-                    }
+            mounted() {
+                document.addEventListener('keydown', this.handleKeyboardShortcut);
+            },
 
-                    // For persons/contacts, get emails directly
-                    if (this.entity?.emails) {
-                        return this.entity.emails.map(email => email.value);
-                    }
-
-                    return [];
-                },
+            beforeUnmount() {
+                document.removeEventListener('keydown', this.handleKeyboardShortcut);
             },
 
             methods: {
+                handleKeyboardShortcut(event) {
+                    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                        const form = this.$refs.mailActionForm;
+
+                        if (form && form.contains(event.target)) {
+                            event.preventDefault();
+                            this.submitForm();
+                        }
+                    }
+                },
+
+                submitForm() {
+                    if (this.isStoring) {
+                        return;
+                    }
+
+                    const form = this.$refs.mailActionForm;
+
+                    if (form) {
+                        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                    }
+                },
+
                 openModal(type) {
                     this.$refs.mailActivityModal.open();
                 },
