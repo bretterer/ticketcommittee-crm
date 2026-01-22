@@ -161,6 +161,7 @@
                                         name="reply_to"
                                         rules="required"
                                         input-rules="email"
+                                        ::data="recipientEmails"
                                         :label="trans('admin::app.components.activities.actions.mail.to')"
                                         :placeholder="trans('admin::app.components.activities.actions.mail.enter-emails')"
                                     />
@@ -325,6 +326,26 @@
 
                     selectedFrom: @json($fromAddresses[0]['email'] ?? ''),
                 }
+            },
+
+            computed: {
+                /**
+                 * Get recipient emails from the entity's person.
+                 * Works for both leads (entity.person.emails) and persons (entity.emails).
+                 */
+                recipientEmails() {
+                    // For leads, get emails from the associated person
+                    if (this.entity?.person?.emails) {
+                        return this.entity.person.emails.map(email => email.value);
+                    }
+
+                    // For persons/contacts, get emails directly
+                    if (this.entity?.emails) {
+                        return this.entity.emails.map(email => email.value);
+                    }
+
+                    return [];
+                },
             },
 
             methods: {
