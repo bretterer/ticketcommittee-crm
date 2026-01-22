@@ -35,6 +35,7 @@ class EmailRepository extends Repository
         $uniqueId = time().'@'.config('mail.domain');
 
         $referenceIds = [];
+        $parent = null;
 
         if (isset($data['parent_id'])) {
             $parent = parent::findOrFail($data['parent_id']);
@@ -42,9 +43,12 @@ class EmailRepository extends Repository
             $referenceIds = $parent->reference_ids ?? [];
         }
 
+        // Determine the from address based on parent email's tags
+        $fromAddress = $this->getFromAddressFromTags($parent);
+
         $data = $this->sanitizeEmails(array_merge([
             'source'        => 'web',
-            'from'          => config('mail.from.address'),
+            'from'          => $fromAddress,
             'user_type'     => 'admin',
             'folders'       => isset($data['is_draft']) ? ['draft'] : ['outbox'],
             'unique_id'     => $uniqueId,
@@ -57,6 +61,56 @@ class EmailRepository extends Repository
         $this->attachmentRepository->uploadAttachments($email, $data);
 
         return $email;
+    }
+
+    /**
+     * Get the From address based on parent email's tags and auto-tag mappings.
+     */
+    protected function getFromAddressFromTags(?object $parentEmail): string
+    {
+        $defaultFrom = config('mail.from.address');
+
+        if (! $parentEmail) {
+            return $defaultFrom;
+        }
+
+        // Get tags from the parent email thread
+        $tags = $parentEmail->tags;
+
+        if ($tags->isEmpty()) {
+            return $defaultFrom;
+        }
+
+        // Get auto-tag mappings config
+        $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
+
+        if (empty($mappingsConfig)) {
+            return $defaultFrom;
+        }
+
+        $mappings = json_decode($mappingsConfig, true);
+
+        if (! is_array($mappings) || empty($mappings)) {
+            return $defaultFrom;
+        }
+
+        // Build a reverse lookup: tag_id -> email
+        $tagIdToEmail = [];
+
+        foreach ($mappings as $mapping) {
+            if (! empty($mapping['email']) && ! empty($mapping['tag_id'])) {
+                $tagIdToEmail[$mapping['tag_id']] = $mapping['email'];
+            }
+        }
+
+        // Find first matching tag
+        foreach ($tags as $tag) {
+            if (isset($tagIdToEmail[$tag->id])) {
+                return $tagIdToEmail[$tag->id];
+            }
+        }
+
+        return $defaultFrom;
     }
 
     /**

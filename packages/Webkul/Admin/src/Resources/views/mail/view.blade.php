@@ -1341,15 +1341,22 @@
                             return [];
                         }
 
+                        // If replying to an email sent by admin (outbound), reply to the original recipients
+                        // If replying to an email from a person (inbound), reply to the sender
+                        const isOutboundEmail = this.action.email.user_type === 'admin';
+                        const replyTarget = isOutboundEmail
+                            ? this.action.email.reply_to
+                            : [this.action.email.from].flat();
+
                         if (this.getActionType == 'reply-all') {
                             return [
-                                this.action.email.from,
+                                ...replyTarget,
                                 ...(this.action.email?.cc || []),
                                 ...(this.action.email?.bcc || []),
                             ];
                         }
 
-                        return [this.action.email.from];
+                        return replyTarget;
                     },
 
                     cc() {
