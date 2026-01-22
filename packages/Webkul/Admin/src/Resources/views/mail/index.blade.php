@@ -1,3 +1,41 @@
+@php
+    // Get available "from" addresses from auto-tag mappings
+    $fromAddresses = [];
+    $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
+
+    if (!empty($mappingsConfig)) {
+        $mappings = json_decode($mappingsConfig, true);
+        if (is_array($mappings)) {
+            foreach ($mappings as $mapping) {
+                if (!empty($mapping['email'])) {
+                    $fromAddresses[] = [
+                        'email' => $mapping['email'],
+                        'name' => $mapping['name'] ?? '',
+                        'label' => !empty($mapping['name'])
+                            ? $mapping['name'] . ' <' . $mapping['email'] . '>'
+                            : $mapping['email'],
+                    ];
+                }
+            }
+        }
+    }
+
+    // Add default from address if not already in the list
+    $defaultEmail = config('mail.from.address');
+    $defaultName = config('mail.from.name');
+    $hasDefault = collect($fromAddresses)->contains('email', $defaultEmail);
+
+    if (!$hasDefault && $defaultEmail) {
+        array_unshift($fromAddresses, [
+            'email' => $defaultEmail,
+            'name' => $defaultName ?? '',
+            'label' => !empty($defaultName)
+                ? $defaultName . ' <' . $defaultEmail . '>'
+                : $defaultEmail,
+        ]);
+    }
+@endphp
+
 <x-admin::layouts>
     <x-slot:title>
         @lang('admin::app.mail.index.' . $route)
@@ -397,6 +435,40 @@
                                 v-model="draft.id"
                             />
 
+                            <!-- From -->
+                            @if (count($fromAddresses) > 1)
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label class="required">
+                                        @lang('admin::app.mail.index.mail.from')
+                                    </x-admin::form.control-group.label>
+
+                                    <x-admin::form.control-group.control
+                                        type="select"
+                                        name="from"
+                                        id="from"
+                                        rules="required"
+                                        v-model="draft.from"
+                                        :label="trans('admin::app.mail.index.mail.from')"
+                                    >
+                                        <option
+                                            v-for="fromAddress in fromAddresses"
+                                            :key="fromAddress.email"
+                                            :value="fromAddress.email"
+                                        >
+                                            @{{ fromAddress.label }}
+                                        </option>
+                                    </x-admin::form.control-group.control>
+
+                                    <x-admin::form.control-group.error control-name="from" />
+                                </x-admin::form.control-group>
+                            @else
+                                <x-admin::form.control-group.control
+                                    type="hidden"
+                                    name="from"
+                                    ::value="fromAddresses[0]?.email || ''"
+                                />
+                            @endif
+
                             <!-- To -->
                             <x-admin::form.control-group>
                                 <x-admin::form.control-group.label class="required">
@@ -559,21 +631,24 @@
         <script type="module">
             app.component('v-mail', {
                 template: '#v-mail-template',
-        
+
                 data() {
                     return {
                         selectedMail: false,
-        
+
                         showCC: false,
-        
+
                         showBCC: false,
-        
+
                         isStoring: false,
-        
+
                         saveAsDraft: 0,
-        
+
+                        fromAddresses: @json($fromAddresses),
+
                         draft: {
                             id: null,
+                            from: @json($fromAddresses[0]['email'] ?? ''),
                             reply_to: [],
                             cc: [],
                             bcc: [],
@@ -636,8 +711,8 @@
                     },
         
                     toggleModal() {
-                        this.draft.reply_to = [];
-        
+                        this.resetForm();
+
                         this.$refs.toggleComposeModal.toggle();
                     },
         
@@ -703,6 +778,7 @@
                     resetForm() {
                         this.draft = {
                             id: null,
+                            from: this.fromAddresses[0]?.email || '',
                             reply_to: [],
                             cc: [],
                             bcc: [],

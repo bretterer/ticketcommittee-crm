@@ -111,6 +111,7 @@ class EmailController extends Controller
     public function store()
     {
         $this->validate(request(), [
+            'from'       => 'nullable|email',
             'reply_to'   => 'required|array|min:1',
             'reply_to.*' => 'email',
             'reply'      => 'required',

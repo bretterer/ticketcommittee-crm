@@ -43,8 +43,13 @@ class EmailRepository extends Repository
             $referenceIds = $parent->reference_ids ?? [];
         }
 
-        // Determine the from address and name based on parent email's tags
-        $fromData = $this->getFromAddressFromTags($parent);
+        // Determine the from address and name
+        // If explicit 'from' is provided, use it; otherwise fall back to tag-based lookup
+        if (! empty($data['from'])) {
+            $fromData = $this->getFromAddressByEmail($data['from']);
+        } else {
+            $fromData = $this->getFromAddressFromTags($parent);
+        }
 
         $data = $this->sanitizeEmails(array_merge([
             'source'        => 'web',
@@ -62,6 +67,49 @@ class EmailRepository extends Repository
         $this->attachmentRepository->uploadAttachments($email, $data);
 
         return $email;
+    }
+
+    /**
+     * Get the From address and name by looking up the email in auto-tag mappings.
+     *
+     * @return array{address: string, name: string}
+     */
+    protected function getFromAddressByEmail(string $email): array
+    {
+        $defaultFrom = [
+            'address' => $email,
+            'name'    => config('mail.from.name'),
+        ];
+
+        // Check if it's the default mail address
+        if ($email === config('mail.from.address')) {
+            return $defaultFrom;
+        }
+
+        // Get auto-tag mappings config to find the name for this email
+        $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
+
+        if (empty($mappingsConfig)) {
+            return $defaultFrom;
+        }
+
+        $mappings = json_decode($mappingsConfig, true);
+
+        if (! is_array($mappings) || empty($mappings)) {
+            return $defaultFrom;
+        }
+
+        // Find the mapping for this email address
+        foreach ($mappings as $mapping) {
+            if (! empty($mapping['email']) && $mapping['email'] === $email) {
+                return [
+                    'address' => $email,
+                    'name'    => $mapping['name'] ?? config('mail.from.name'),
+                ];
+            }
+        }
+
+        return $defaultFrom;
     }
 
     /**
