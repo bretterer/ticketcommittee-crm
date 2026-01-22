@@ -1332,7 +1332,28 @@
                         showBCC: false,
 
                         isStoring: false,
+
+                        tinymceEditor: null,
                     };
+                },
+
+                mounted() {
+                    // Add keyboard shortcut listener for Cmd+Enter / Ctrl+Enter
+                    document.addEventListener('keydown', this.handleKeyboardShortcut);
+
+                    // Wait for TinyMCE to initialize, then add listener to editor
+                    this.$nextTick(() => {
+                        this.setupTinymceShortcut();
+                    });
+                },
+
+                beforeUnmount() {
+                    document.removeEventListener('keydown', this.handleKeyboardShortcut);
+
+                    // Clean up TinyMCE listener
+                    if (this.tinymceEditor) {
+                        this.tinymceEditor.off('keydown', this.handleTinymceKeydown);
+                    }
                 },
 
                 computed: {
@@ -1389,6 +1410,74 @@
                 },
 
                 methods: {
+                    /**
+                     * Setup keyboard shortcut listener for TinyMCE editor.
+                     */
+                    setupTinymceShortcut() {
+                        // TinyMCE takes time to initialize, retry a few times
+                        let attempts = 0;
+                        const maxAttempts = 10;
+
+                        const trySetup = () => {
+                            attempts++;
+
+                            if (window.tinymce && tinymce.get('reply')) {
+                                this.tinymceEditor = tinymce.get('reply');
+                                this.tinymceEditor.on('keydown', this.handleTinymceKeydown);
+                            } else if (attempts < maxAttempts) {
+                                setTimeout(trySetup, 200);
+                            }
+                        };
+
+                        trySetup();
+                    },
+
+                    /**
+                     * Handle keyboard shortcut from TinyMCE editor.
+                     */
+                    handleTinymceKeydown(event) {
+                        if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                            event.preventDefault();
+                            this.submitForm();
+                        }
+                    },
+
+                    /**
+                     * Handle keyboard shortcut from main document.
+                     */
+                    handleKeyboardShortcut(event) {
+                        if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                            // Check if the event target is within this form
+                            const form = this.$refs.mailActionForm;
+
+                            if (form && form.contains(event.target)) {
+                                event.preventDefault();
+                                this.submitForm();
+                            }
+                        }
+                    },
+
+                    /**
+                     * Programmatically submit the form.
+                     */
+                    submitForm() {
+                        if (this.isStoring) {
+                            return;
+                        }
+
+                        // Sync TinyMCE content to textarea before submitting
+                        if (this.tinymceEditor) {
+                            this.tinymceEditor.save();
+                        }
+
+                        // Trigger the form's native submit event
+                        const form = this.$refs.mailActionForm;
+
+                        if (form) {
+                            form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                        }
+                    },
+
                     save(params, { resetForm, setErrors  }) {
                         let formData = new FormData(this.$refs.mailActionForm);
 
