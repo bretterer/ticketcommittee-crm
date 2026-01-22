@@ -1,8 +1,10 @@
-@props(['data' => []])
+@props(['data' => null])
 
 <v-control-tags
     :errors="errors"
-    :data="{{ json_encode($data ?? []) }}"
+    @if($data !== null)
+        :data="{{ json_encode($data) }}"
+    @endif
     {{ $attributes->except('data') }}
     v-bind="$attrs"
 ></v-control-tags>
