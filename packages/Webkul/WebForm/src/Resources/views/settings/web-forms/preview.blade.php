@@ -1,3 +1,7 @@
+@php
+    $customLogo = core()->getConfigData('general.general.admin_logo.logo_image');
+@endphp
+
 <x-web_form::layouts>
     <x-slot:title>
         {{ strip_tags($webForm->title) }}
@@ -25,7 +29,7 @@
                     <!-- Logo -->
                     <img
                         class="w-max"
-                        src="{{ vite()->asset('images/logo.svg') }}"
+                        src="{{ $customLogo ? Storage::url($customLogo) : vite()->asset('images/logo.svg') }}"
                         alt="{{ config('app.name') }}"
                     />
 
