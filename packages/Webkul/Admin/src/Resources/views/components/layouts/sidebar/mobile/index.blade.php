@@ -17,17 +17,33 @@
             </x-slot>
 
             <x-slot:header>
-                @if ($logo = core()->getConfigData('general.design.admin_logo.logo_image'))
-                    <img
-                        class="h-10"
-                        src="{{ Storage::url($logo) }}"
-                        alt="{{ config('app.name') }}"
-                    />
+                @php
+                    $lightLogo = core()->getConfigData('general.general.admin_logo.logo_image');
+                    $darkLogo = core()->getConfigData('general.general.admin_logo.dark_logo_image');
+                    $hasCustomLogo = !empty($lightLogo);
+                    $hasCustomDarkLogo = !empty($darkLogo);
+                @endphp
+
+                @if ($hasCustomLogo)
+                    @if ($hasCustomDarkLogo)
+                        <img
+                            class="h-10"
+                            src="{{ request()->cookie('dark_mode') ? Storage::url($darkLogo) : Storage::url($lightLogo) }}"
+                            id="mobile-logo-image"
+                            alt="{{ config('app.name') }}"
+                        />
+                    @else
+                        <img
+                            class="h-10"
+                            src="{{ Storage::url($lightLogo) }}"
+                            alt="{{ config('app.name') }}"
+                        />
+                    @endif
                 @else
                     <img
                         class="h-10"
                         src="{{ request()->cookie('dark_mode') ? vite()->asset('images/dark-logo.svg') : vite()->asset('images/logo.svg') }}"
-                        id="logo-image"
+                        id="mobile-logo-image"
                         alt="{{ config('app.name') }}"
                     />
                 @endif

@@ -1,17 +1,35 @@
 <header class="sticky top-0 z-[10001] flex items-center justify-between gap-1 border-b border-gray-200 bg-white px-4 py-2.5 transition-all dark:border-gray-800 dark:bg-gray-900">  
     <!-- logo -->
+    @php
+        $lightLogo = core()->getConfigData('general.general.admin_logo.logo_image');
+        $darkLogo = core()->getConfigData('general.general.admin_logo.dark_logo_image');
+        $hasCustomLogo = !empty($lightLogo);
+        $hasCustomDarkLogo = !empty($darkLogo);
+    @endphp
     <div class="flex items-center gap-1.5">
         <!-- Sidebar Menu -->
         <x-admin::layouts.sidebar.mobile />
-        
+
         <a href="{{ route('admin.dashboard.index') }}">
-            @if ($logo = core()->getConfigData('general.general.admin_logo.logo_image'))
-                <img
-                    class="h-10"
-                    src="{{ Storage::url($logo) }}"
-                    alt="{{ config('app.name') }}"
-                />
+            @if ($hasCustomLogo)
+                @if ($hasCustomDarkLogo)
+                    {{-- Custom light and dark logos --}}
+                    <img
+                        class="h-10"
+                        src="{{ request()->cookie('dark_mode') ? Storage::url($darkLogo) : Storage::url($lightLogo) }}"
+                        id="logo-image"
+                        alt="{{ config('app.name') }}"
+                    />
+                @else
+                    {{-- Only custom light logo - use for both modes --}}
+                    <img
+                        class="h-10"
+                        src="{{ Storage::url($lightLogo) }}"
+                        alt="{{ config('app.name') }}"
+                    />
+                @endif
             @else
+                {{-- Default logos with dark mode support --}}
                 <img
                     class="h-10 max-sm:hidden"
                     src="{{ request()->cookie('dark_mode') ? vite()->asset('images/dark-logo.svg') : vite()->asset('images/logo.svg') }}"
@@ -142,9 +160,19 @@
                 return {
                     isDarkMode: {{ request()->cookie('dark_mode') ?? 0 }},
 
-                    logo: "{{ vite()->asset('images/logo.svg') }}",
-
-                    dark_logo: "{{ vite()->asset('images/dark-logo.svg') }}",
+                    @if ($hasCustomLogo && $hasCustomDarkLogo)
+                        logo: "{{ Storage::url($lightLogo) }}",
+                        dark_logo: "{{ Storage::url($darkLogo) }}",
+                        canSwapLogo: true,
+                    @elseif ($hasCustomLogo)
+                        logo: "{{ Storage::url($lightLogo) }}",
+                        dark_logo: "{{ Storage::url($lightLogo) }}",
+                        canSwapLogo: false,
+                    @else
+                        logo: "{{ vite()->asset('images/logo.svg') }}",
+                        dark_logo: "{{ vite()->asset('images/dark-logo.svg') }}",
+                        canSwapLogo: true,
+                    @endif
                 };
             },
 
@@ -163,11 +191,15 @@
                     if (this.isDarkMode) {
                         this.$emitter.emit('change-theme', 'dark');
 
-                        document.getElementById('logo-image').src = this.dark_logo;
+                        if (this.canSwapLogo) {
+                            document.getElementById('logo-image')?.setAttribute('src', this.dark_logo);
+                        }
                     } else {
                         this.$emitter.emit('change-theme', 'light');
 
-                        document.getElementById('logo-image').src = this.logo;
+                        if (this.canSwapLogo) {
+                            document.getElementById('logo-image')?.setAttribute('src', this.logo);
+                        }
                     }
                 },
 

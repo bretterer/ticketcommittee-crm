@@ -2127,9 +2127,12 @@ return [
                     ],
 
                     'admin-logo' => [
-                        'logo-image' => 'Logo Image',
-                        'title'      => 'Admin Logo',
-                        'title-info' => 'Configure logo image for your admin panel.',
+                        'logo-image'           => 'Logo Image (Light Mode)',
+                        'logo-image-info'      => 'Used when the application is in light mode.',
+                        'dark-logo-image'      => 'Logo Image (Dark Mode)',
+                        'dark-logo-image-info' => 'Used when the application is in dark mode. If not set, the light mode logo will be used for both.',
+                        'title'                => 'Admin Logo',
+                        'title-info'           => 'Configure logo images for your admin panel.',
                     ],
                 ],
 
