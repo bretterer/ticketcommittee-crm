@@ -50,12 +50,22 @@
                     class="flex items-center gap-3"
                 >
                     <!-- Email Input -->
-                    <div class="flex-1">
+                    <div class="w-1/4">
                         <input
                             type="text"
                             v-model="mapping.email"
                             class="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-600 transition-all hover:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400"
                             placeholder="@lang('admin::app.configuration.index.email.postmark.general.email-placeholder')"
+                        />
+                    </div>
+
+                    <!-- Display Name Input -->
+                    <div class="w-1/4">
+                        <input
+                            type="text"
+                            v-model="mapping.name"
+                            class="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-600 transition-all hover:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400"
+                            placeholder="@lang('admin::app.configuration.index.email.postmark.general.display-name-placeholder')"
                         />
                     </div>
 
@@ -221,7 +231,7 @@
 
             methods: {
                 addMapping() {
-                    this.mappings.push({ email: '', tag_id: null });
+                    this.mappings.push({ email: '', tag_id: null, name: '' });
                 },
 
                 removeMapping(index) {

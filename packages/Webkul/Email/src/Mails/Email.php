@@ -25,9 +25,12 @@ class Email extends Mailable
      */
     public function build()
     {
-        $fromAddress = $this->getFromAddressFromTags();
+        // Use the from address and name stored on the email record
+        // These are set by EmailRepository based on tag mappings
+        $fromAddress = $this->email->from;
+        $fromName = $this->email->name ?? config('mail.from.name');
 
-        $this->from($fromAddress)
+        $this->from($fromAddress, $fromName)
             ->to($this->email->reply_to)
             ->replyTo($this->email->parent_id ? $this->email->parent->unique_id : $this->email->unique_id)
             ->cc($this->email->cc ?? [])
@@ -53,54 +56,5 @@ class Email extends Mailable
         }
 
         return $this;
-    }
-
-    /**
-     * Get the From address based on email thread tags and auto-tag mappings.
-     *
-     * @return array|string
-     */
-    protected function getFromAddressFromTags()
-    {
-        // Get the thread root email (parent if replying, otherwise current)
-        $threadEmail = $this->email->parent_id ? $this->email->parent : $this->email;
-
-        // Get tags from the thread
-        $tags = $threadEmail->tags;
-
-        if ($tags->isEmpty()) {
-            return $this->email->from;
-        }
-
-        // Get auto-tag mappings config
-        $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
-
-        if (empty($mappingsConfig)) {
-            return $this->email->from;
-        }
-
-        $mappings = json_decode($mappingsConfig, true);
-
-        if (! is_array($mappings) || empty($mappings)) {
-            return $this->email->from;
-        }
-
-        // Build a reverse lookup: tag_id -> email
-        $tagIdToEmail = [];
-
-        foreach ($mappings as $mapping) {
-            if (! empty($mapping['email']) && ! empty($mapping['tag_id'])) {
-                $tagIdToEmail[$mapping['tag_id']] = $mapping['email'];
-            }
-        }
-
-        // Find first matching tag
-        foreach ($tags as $tag) {
-            if (isset($tagIdToEmail[$tag->id])) {
-                return $tagIdToEmail[$tag->id];
-            }
-        }
-
-        return $this->email->from;
     }
 }
