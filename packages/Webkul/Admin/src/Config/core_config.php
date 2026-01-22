@@ -340,10 +340,10 @@ return [
                 'info'  => 'admin::app.configuration.index.email.postmark.general.webhook-token-info',
             ],
             [
-                'name' => 'webhook_url',
+                'name'  => 'webhook_url',
                 'title' => 'admin::app.configuration.index.email.postmark.general.webhook-url',
-                'type' => 'blade',
-                'path' => 'admin::configuration.postmark-webhook-url',
+                'type'  => 'blade',
+                'path'  => 'admin::configuration.postmark-webhook-url',
             ],
         ],
     ],
