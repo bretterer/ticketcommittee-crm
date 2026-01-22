@@ -94,6 +94,7 @@ class PostmarkEmailProcessor
             ]));
 
             $this->processAttachments($email, $payload['Attachments'] ?? []);
+            $this->applyAutoTags($email, $to);
         } else {
             // Update parent email and create reply
             // Mark parent as unread so the thread appears bold in inbox
@@ -110,6 +111,9 @@ class PostmarkEmailProcessor
             ]));
 
             $this->processAttachments($email, $payload['Attachments'] ?? []);
+
+            // Apply auto-tags to parent email thread (not the reply)
+            $this->applyAutoTags($parentEmail, $to);
         }
     }
 
@@ -231,6 +235,58 @@ class PostmarkEmailProcessor
 
         foreach ($attachments as $attachment) {
             $this->attachmentRepository->uploadPostmarkAttachment($email, $attachment);
+        }
+    }
+
+    /**
+     * Apply auto-tags to email based on recipient address mappings.
+     */
+    protected function applyAutoTags(object $email, array $toEmails): void
+    {
+        $mappingsConfig = core()->getConfigData('email.postmark.general.auto_tag_mappings');
+
+        if (empty($mappingsConfig)) {
+            return;
+        }
+
+        // Parse mappings from JSON config
+        $mappings = json_decode($mappingsConfig, true);
+
+        if (! is_array($mappings) || empty($mappings)) {
+            return;
+        }
+
+        // Build a lookup map of email -> tag_id
+        $emailToTagId = [];
+
+        foreach ($mappings as $mapping) {
+            if (! empty($mapping['email']) && ! empty($mapping['tag_id'])) {
+                $emailToTagId[strtolower($mapping['email'])] = $mapping['tag_id'];
+            }
+        }
+
+        if (empty($emailToTagId)) {
+            return;
+        }
+
+        // Find matching tags for recipient addresses
+        $tagIds = [];
+
+        foreach ($toEmails as $toEmail) {
+            $toEmailLower = strtolower($toEmail);
+
+            if (isset($emailToTagId[$toEmailLower])) {
+                $tagId = $emailToTagId[$toEmailLower];
+
+                if (! in_array($tagId, $tagIds)) {
+                    $tagIds[] = $tagId;
+                }
+            }
+        }
+
+        // Attach tags to email (sync without detaching existing tags)
+        if (! empty($tagIds)) {
+            $email->tags()->syncWithoutDetaching($tagIds);
         }
     }
 }

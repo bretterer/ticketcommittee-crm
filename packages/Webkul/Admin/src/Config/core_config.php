@@ -345,6 +345,12 @@ return [
                 'type'  => 'blade',
                 'path'  => 'admin::configuration.postmark-webhook-url',
             ],
+            [
+                'name'  => 'auto_tag_mappings',
+                'title' => 'admin::app.configuration.index.email.postmark.general.auto-tag-mappings',
+                'type'  => 'blade',
+                'path'  => 'admin::configuration.postmark-auto-tag-mappings',
+            ],
         ],
     ],
 ];
