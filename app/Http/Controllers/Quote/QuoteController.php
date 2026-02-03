@@ -21,7 +21,7 @@ class QuoteController extends BaseQuoteController
         $quote = $this->quoteRepository->findOrFail($id);
 
         $html = view('admin::quotes.pdf', compact('quote'))->render();
-        $fileName = 'Quote_'.$quote->subject.'_'.$quote->created_at->format('d-m-Y');
+        $fileName = 'Quote_'.$quote->subject.'_'.$quote->created_at->format('m-d-Y');
 
         return $this->downloadLetterPDF($html, $fileName);
     }
