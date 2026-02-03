@@ -245,7 +245,7 @@
                                 </b>
 
                                 <span>
-                                    {{ core()->formatDate($quote->created_at, 'd-m-Y') }}
+                                    {{ core()->formatDate($quote->created_at, 'm-d-Y') }}
                                 </span>
                             </td>
 
@@ -267,7 +267,7 @@
                                 </b>
 
                                 <span>
-                                    {{ core()->formatDate($quote->expired_at, 'd-m-Y') }}
+                                    {{ core()->formatDate($quote->expired_at, 'm-d-Y') }}
                                 </span>
                             </td>
                         </tr>
