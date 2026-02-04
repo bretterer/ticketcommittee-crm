@@ -46,7 +46,14 @@ class EmailRepository extends Repository
         // Determine the from address and name
         // If explicit 'from' is provided, use it; otherwise fall back to tag-based lookup
         if (! empty($data['from'])) {
-            $fromData = $this->getFromAddressByEmail($data['from']);
+            // Handle array format (from inbound emails) vs string format (from web)
+            $fromEmail = is_array($data['from']) ? ($data['from'][0] ?? null) : $data['from'];
+
+            if ($fromEmail) {
+                $fromData = $this->getFromAddressByEmail($fromEmail);
+            } else {
+                $fromData = $this->getFromAddressFromTags($parent);
+            }
         } else {
             $fromData = $this->getFromAddressFromTags($parent);
         }
