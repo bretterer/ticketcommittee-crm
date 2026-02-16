@@ -98,9 +98,12 @@ class PostmarkEmailProcessor
         } else {
             // Update parent email and create reply
             // Mark parent as unread so the thread appears bold in inbox
+            $parentFolders = is_array($parentEmail->folders) ? $parentEmail->folders : [];
+            $parentReferenceIds = is_array($parentEmail->reference_ids) ? $parentEmail->reference_ids : [];
+
             $this->emailRepository->update([
-                'folders'       => array_unique(array_merge($parentEmail->folders, ['inbox'])),
-                'reference_ids' => array_merge($parentEmail->reference_ids ?? [], [$messageId]),
+                'folders'       => array_unique(array_merge($parentFolders, ['inbox'])),
+                'reference_ids' => array_merge($parentReferenceIds, [$messageId]),
                 'is_read'       => false,
             ], $parentEmail->id);
 
