@@ -13,6 +13,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('inbound-emails:process')->everyFiveMinutes();
+
+        $schedule->command('email:send-unread-digest')->hourly()->between('8:00', '22:00');
     }
 
     /**

@@ -5,6 +5,7 @@ namespace Webkul\Email\Providers;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Webkul\Email\Console\Commands\ProcessInboundEmails;
+use Webkul\Email\Console\Commands\SendUnreadEmailDigest;
 use Webkul\Email\Http\Controllers\PostmarkWebhookController;
 use Webkul\Email\Http\Middleware\VerifyPostmarkWebhook;
 use Webkul\Email\InboundEmailProcessor\Contracts\InboundEmailProcessor;
@@ -67,6 +68,7 @@ class EmailServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ProcessInboundEmails::class,
+                SendUnreadEmailDigest::class,
             ]);
         }
     }
