@@ -1,5 +1,7 @@
 <?php
 
+use Webkul\Email\Models\Email;
+
 if (! function_exists('bouncer')) {
     function bouncer()
     {
@@ -13,7 +15,7 @@ if (! function_exists('getUnreadInboxCount')) {
      */
     function getUnreadInboxCount(): int
     {
-        return \Webkul\Email\Models\Email::query()
+        return Email::query()
             ->where('is_read', false)
             ->whereNull('parent_id')
             ->whereJsonContains('folders', 'inbox')

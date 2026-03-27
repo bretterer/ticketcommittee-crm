@@ -4,8 +4,8 @@ namespace Webkul\Email\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
-use Webkul\Email\Models\Email;
 use Webkul\Email\Mails\UnreadEmailDigest as UnreadEmailDigestMail;
+use Webkul\Email\Models\Email;
 use Webkul\User\Models\User;
 
 class SendUnreadEmailDigest extends Command

@@ -53,7 +53,7 @@ class QuoteController extends BaseQuoteController
             return response()->streamDownload(fn () => print ($mPDF->Output('', 'S')), $fileName.'.pdf');
         }
 
-        return PDF::loadHTML($this->adjustArabicAndPersianContent($html))
+        return Pdf::loadHTML($this->adjustArabicAndPersianContent($html))
             ->setPaper('letter', 'portrait')
             ->set_option('defaultFont', 'Courier')
             ->download($fileName.'.pdf');
