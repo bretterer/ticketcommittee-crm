@@ -79,22 +79,41 @@
                         </x-admin::form.control-group>
                     </div>
 
-                    <div class="flex items-center justify-between p-4">
-                        <!-- Forgot Password Link -->
-                        <a
-                            class="cursor-pointer text-xs font-semibold leading-6 text-brandColor"
-                            href="{{ route('admin.forgot_password.create') }}"
-                        >
-                            @lang('admin::app.users.login.forget-password-link')
-                        </a>
+                    <div class="flex flex-col gap-4 p-4">
+                        <!-- Remember Me & Submit -->
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="remember"
+                                name="remember"
+                                class="cursor-pointer rounded border-gray-300 text-brandColor focus:ring-brandColor dark:border-gray-600 dark:bg-gray-900"
+                            />
 
-                        <!-- Submit Button -->
-                        <button
-                            class="primary-button"
-                            aria-label="{{ trans('admin::app.users.login.submit-btn')}}"
-                        >
-                            @lang('admin::app.users.login.submit-btn')
-                        </button>
+                            <label
+                                for="remember"
+                                class="cursor-pointer text-xs text-gray-600 dark:text-gray-300"
+                            >
+                                @lang('admin::app.users.login.remember-me')
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <!-- Forgot Password Link -->
+                            <a
+                                class="cursor-pointer text-xs font-semibold leading-6 text-brandColor"
+                                href="{{ route('admin.forgot_password.create') }}"
+                            >
+                                @lang('admin::app.users.login.forget-password-link')
+                            </a>
+
+                            <!-- Submit Button -->
+                            <button
+                                class="primary-button"
+                                aria-label="{{ trans('admin::app.users.login.submit-btn')}}"
+                            >
+                                @lang('admin::app.users.login.submit-btn')
+                            </button>
+                        </div>
                     </div>
                 </x-admin::form>
 

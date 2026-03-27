@@ -55,6 +55,7 @@ return [
             'email'                => 'Email Address',
             'forget-password-link' => 'Forget Password ?',
             'password'             => 'Password',
+            'remember-me'          => 'Keep me logged in',
             'submit-btn'           => 'Sign In',
             'title'                => 'Sign In',
         ],
